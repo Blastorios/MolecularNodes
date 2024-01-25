@@ -35,77 +35,78 @@ class Molecule(metaclass=ABCMeta):
     """
 
     def __init__(self):
-        self.object = None
-        self.frames = None
-        self.entity_ids = None
-        self.chain_ids = None
+        self.object: bpy.types.Object = None
+        self.frames: bpy.types.Collection = None
+        self.entity_ids: np.ndarray = None
+        self.chain_ids: np.ndarray = None
+        self.node_group: bpy.types.NodeGroup = None
 
-    def set_attribute(
-        self,
-        data: np.ndarray,
-        name='NewAttribute',
-        type=None,
-        domain='POINT',
-        overwrite=True
-    ):
-        """
-        Set an attribute for the molecule.
+    # def set_attribute(
+    #     self,
+    #     data: np.ndarray,
+    #     name='NewAttribute',
+    #     type=None,
+    #     domain='POINT',
+    #     overwrite=True
+    # ):
+    #     """
+    #     Set an attribute for the molecule.
 
-        Parameters
-        ----------
-        data : np.ndarray
-            The data to be set as the attribute. Must be of length equal to the length
-            of the domain.
-        name : str, optional
-            The name of the new attribute. Default is 'NewAttribute'.
-        type : str, optional
-            If value is None (Default), the data type is inferred. The data type of the 
-            attribute. Possbible values are ('FLOAT_VECTOR', 'FLOAT_COLOR", 'QUATERNION', 
-            'FLOAT', 'INT', 'BOOLEAN').
-        domain : str, optional
-            The domain of the attribute. Default is 'POINT'. Possible values are 
-            currently ['POINT', 'EDGE', 'FACE', 'SPLINE']
-        overwrite : bool, optional
-            Whether to overwrite an existing attribute with the same name, or create a 
-            new attribute with always a unique name. Default is True.
-        """
-        if not self.object:
-            warnings.warn(
-                f'No object yet created. Use `create_model()` to create a corresponding object.'
-            )
-            return None
-        bl.obj.set_attribute(
-            self.object,
-            name=name,
-            data=data,
-            domain=domain,
-            overwrite=overwrite
-        )
+    #     Parameters
+    #     ----------
+    #     data : np.ndarray
+    #         The data to be set as the attribute. Must be of length equal to the length
+    #         of the domain.
+    #     name : str, optional
+    #         The name of the new attribute. Default is 'NewAttribute'.
+    #     type : str, optional
+    #         If value is None (Default), the data type is inferred. The data type of the
+    #         attribute. Possbible values are ('FLOAT_VECTOR', 'FLOAT_COLOR", 'QUATERNION',
+    #         'FLOAT', 'INT', 'BOOLEAN').
+    #     domain : str, optional
+    #         The domain of the attribute. Default is 'POINT'. Possible values are
+    #         currently ['POINT', 'EDGE', 'FACE', 'SPLINE']
+    #     overwrite : bool, optional
+    #         Whether to overwrite an existing attribute with the same name, or create a
+    #         new attribute with always a unique name. Default is True.
+    #     """
+    #     if not self.object:
+    #         warnings.warn(
+    #             f'No object yet created. Use `create_model()` to create a corresponding object.'
+    #         )
+    #         return None
+    #     bl.obj.set_attribute(
+    #         self.object,
+    #         name=name,
+    #         data=data,
+    #         domain=domain,
+    #         overwrite=overwrite
+    #     )
 
-    def get_attribute(self, name='position', evaluate=False) -> np.ndarray | None:
-        """
-        Get the value of an attribute for the molecule.
+    # def get_attribute(self, name='position', evaluate=False) -> np.ndarray | None:
+    #     """
+    #     Get the value of an attribute for the molecule.
 
-        Parameters
-        ----------
-        name : str, optional
-            The name of the attribute. Default is 'position'.
-        evaluate : bool, optional
-            Whether to first evaluate all node trees before getting the requsted attribute. 
-            False (default) will sample the underlying atomic geometry, while True will 
-            sample the geometry that is created through the Geometry Nodes tree.
+    #     Parameters
+    #     ----------
+    #     name : str, optional
+    #         The name of the attribute. Default is 'position'.
+    #     evaluate : bool, optional
+    #         Whether to first evaluate all node trees before getting the requsted attribute.
+    #         False (default) will sample the underlying atomic geometry, while True will
+    #         sample the geometry that is created through the Geometry Nodes tree.
 
-        Returns
-        -------
-        np.ndarray
-            The value of the attribute.
-        """
-        if not self.object:
-            warnings.warn(
-                'No object yet created. Use `create_model()` to create a corresponding object.'
-            )
-            return None
-        return bl.obj.get_attribute(self.object, name=name, evaluate=evaluate)
+    #     Returns
+    #     -------
+    #     np.ndarray
+    #         The value of the attribute.
+    #     """
+    #     if not self.object:
+    #         warnings.warn(
+    #             'No object yet created. Use `create_model()` to create a corresponding object.'
+    #         )
+    #         return None
+    #     return bl.obj.get_attribute(self.object, name=name, evaluate=evaluate)
 
     def list_attributes(self) -> list | None:
         if not self.object:
@@ -319,8 +320,8 @@ def _create_model(array,
     # 'AROMATIC_SINGLE' = 5, 'AROMATIC_DOUBLE' = 6, 'AROMATIC_TRIPLE' = 7
     # https://www.biotite-python.org/apidoc/biotite.structure.BondType.html#biotite.structure.BondType
     if array.bonds:
-        bl.obj.set_attribute(mol, name='bond_type', data=bond_types,
-                             type="INT", domain="EDGE")
+        mol.attribute_set(name='bond_type', data=bond_types,
+                          type="INT", domain="EDGE")
 
     # The attributes for the model are initially defined as single-use functions. This allows
     # for a loop that attempts to add each attibute by calling the function. Only during this
@@ -519,7 +520,7 @@ def _create_model(array,
         if verbose:
             start = time.process_time()
         try:
-            bl.obj.set_attribute(mol, name=att['name'], data=att['value'](
+            mol.attribute_set(name=att['name'], data=att['value'](
             ), type=att['type'], domain=att['domain'])
             if verbose:
                 print(

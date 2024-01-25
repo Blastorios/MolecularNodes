@@ -21,6 +21,7 @@ class Ensemble(metaclass=ABCMeta):
         self.object: bpy.types.Object = None
         self.instances: bpy.types.Collection = None
         self.frames: bpy.types.Collection = None
+        self.node_group = None
 
     @classmethod
     def create_model(cls, name: str = "NewEnsemble", node_setup: bool = True, world_scale: float = 0.01, fraction: float = 1.0, simplify=False):

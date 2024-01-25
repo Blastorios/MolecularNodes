@@ -30,6 +30,36 @@ class AttributeMismatchError(Exception):
         super().__init__(self.message)
 
 
+class ExtendedObject(bpy.types.Object):
+    def __init__(self, object: bpy.types.Object):
+        self.object = object
+
+    def __getattr__(self, attr):
+        return getattr(self.object, attr)
+
+    def __setitem__(self, key, value):
+        self.object[key] = value
+
+    def attribute_set(
+        self,
+        name: str,
+        data: np.ndarray,
+        type=None,
+        domain="POINT",
+        overwrite: bool = True
+
+    ):
+        set_attribute(self.object, name=name, data=data, type=type,
+                      domain=domain, overwrite=OverflowError)
+
+    def attribute_get(
+        self,
+        name: str = 'position',
+        evaluate: bool = False
+    ):
+        return get_attribute(self.object, name=name, evaluate=evaluate)
+
+
 def create_object(
     vertices: np.ndarray = [],
     edges: np.ndarray = [],
@@ -74,7 +104,7 @@ def create_object(
 
     object['type'] = 'molecule'
 
-    return object
+    return ExtendedObject(object)
 
 
 def set_attribute(
@@ -162,14 +192,25 @@ def get_attribute(object: bpy.types.Object, name='position', evaluate=False) -> 
     Returns:
         np.ndarray: The attribute data as a numpy array.
     """
+
     if evaluate:
+        pre_eval_attribute_names = object.data.attributes.keys()
         object = evaluated(object)
     attribute_names = object.data.attributes.keys()
     if name not in attribute_names:
-        raise AttributeError(
-            f"The selected attribute '{name}' does not exist on the mesh. \
-            Possible attributes are: {attribute_names=}"
-        )
+        if name in pre_eval_attribute_names:
+            message = (
+                f"The selected attribute '{name}' does not exist on the mesh. "
+                "The attribute existed priod to evaluation of the modifiers, but has "
+                "been lost during modifier evaluation."
+                f"Possible attributes on the final mesh are: {attribute_names=}"
+            )
+        else:
+            message = (
+                f"The selected attribute '{name}' does not exist on the mesh. "
+                f"Possible attributes are: {attribute_names=}"
+            )
+        raise AttributeError(message)
 
     # Get the attribute and some metadata about it from the object
     att = object.data.attributes[name]
