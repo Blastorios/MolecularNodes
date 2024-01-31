@@ -371,6 +371,7 @@ def change_style_node(object, style):
         except KeyError:
             # the new node doesn't contain a material slot
             pass
+    return node_style
 
 
 def create_starting_nodes_starfile(object, n_images=1):

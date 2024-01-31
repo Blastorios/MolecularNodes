@@ -1,6 +1,7 @@
 import bpy
 import traceback
 import os
+from pathlib import Path
 import zipfile
 import numpy as np
 from mathutils import Matrix
@@ -47,6 +48,32 @@ def lerp(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
     return np.add(a, np.multiply(np.subtract(b, a), t))
 
 
+def zip_folder(folder_path, zip_path):
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zipf.write(file_path, os.path.relpath(file_path, folder_path))
+
+
+def template_install():
+    template_dir = Path(os.path.abspath(ADDON_DIR)) / 'assets' / 'template'
+    folder_to_zip = template_dir / 'Molecular Nodes'
+    folder_zipped = template_dir / 'Molecular Nodes.zip'
+    zip_folder(folder_to_zip, folder_zipped)
+    _install_template(folder_zipped)
+    bpy.utils.refresh_script_paths()
+
+
+def template_uninstall():
+    import shutil
+    for folder in bpy.utils.app_template_paths():
+        path = os.path.join(os.path.abspath(folder), 'MolecularNodes')
+        if os.path.exists(path):
+            shutil.rmtree(path)
+    bpy.utils.refresh_script_paths()
+
+
 def _module_filesystem_remove(path_base, module_name):
     # taken from the bpy.ops.preferences.app_template_install() operator source code
     # Remove all Python modules with `module_name` in `base_path`.
@@ -83,24 +110,7 @@ def _zipfile_root_namelist(file_to_extract):
     return root_paths
 
 
-def template_install():
-    print(os.path.abspath(ADDON_DIR))
-    template = os.path.join(os.path.abspath(ADDON_DIR),
-                            'assets', 'template', 'Molecular Nodes.zip')
-    _install_template(template)
-    bpy.utils.refresh_script_paths()
-
-
-def template_uninstall():
-    import shutil
-    for folder in bpy.utils.app_template_paths():
-        path = os.path.join(os.path.abspath(folder), 'MolecularNodes')
-        if os.path.exists(path):
-            shutil.rmtree(path)
-    bpy.utils.refresh_script_paths()
-
-
-def _install_template(filepath, subfolder='', overwrite=True):
+def _install_template(filepath, subfolder='', overwrite=True, verbose=False):
     # taken from the bpy.ops.preferences.app_template_install() operator source code
 
     path_app_templates = bpy.utils.user_resource(
@@ -158,7 +168,8 @@ def _install_template(filepath, subfolder='', overwrite=True):
         tip_("Template Installed (%s) from %r into %r") %
         (", ".join(sorted(app_templates_new)), filepath, path_app_templates)
     )
-    print(msg)
+    if verbose:
+        print(msg)
 
 
 # data types for the np.array that will store per-chain symmetry operations

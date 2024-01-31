@@ -39,6 +39,7 @@ class Molecule(metaclass=ABCMeta):
         self.frames = None
         self.entity_ids = None
         self.chain_ids = None
+        self.style = None
 
     def set_attribute(
         self,
@@ -208,6 +209,7 @@ class Molecule(metaclass=ABCMeta):
 
         self.object = model
         self.frames = frames
+        self.style = bl.style.Style(molecule=self, style=style)
 
         return model
 
@@ -238,19 +240,22 @@ class Molecule(metaclass=ABCMeta):
 
         return assemblies_info
 
+    def style_set(self, style='spheres'):
+        bl.nodes.change_style_node(self.object, style=style)
+
     def __str__(self):
-        return f"Molecule with {len(self.data)} atoms"
+        return f"Molecule with {len(self.object.data.vertices)} atoms"
 
     def __repr__(self):
-        return f"Molecule({self.data})"
+        return f"Molecule({self.object})"
 
     def __eq__(self, other):
         if isinstance(other, Molecule):
-            return self.data == other.data
+            return self.object.data == other.object.data
         return False
 
     def __hash__(self):
-        return hash(tuple(self.data))
+        return hash(self.get_attribute('position'))
 
     def __len__(self):
         return len(self.object.data.vertices)
@@ -259,13 +264,22 @@ class Molecule(metaclass=ABCMeta):
         return self.get_attribute(index)
 
     def __setitem__(self, index, value):
-        self.data[index] = value
 
-    def __iter__(self):
-        return iter(self.data)
+        self.set_attribute(value, index)
 
-    def __contains__(self, value):
-        return value in self.data
+    # def __setattr__(self, name, value):
+    #     if name == 'style' and hasattr(self, 'style'):
+    #         self.style.set(value)
+    #     else:
+    #         super().__setattr__(name, value)
+
+    # def __getattr__(self, name):
+    #     if name in self.__dict__:
+    #         return getattr(self, name)
+    #     elif name in self.list_attributes():
+    #         return bl.obj.get_attribute(self.object, name)
+    #     else:
+    #         pass
 
 
 def _create_model(array,
