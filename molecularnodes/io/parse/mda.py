@@ -529,7 +529,7 @@ class MDAnalysisSession:
         universe = atoms.universe
 
         # if any frame_mapping is out of range, then raise an error
-        if frame_mapping and (len(frame_mapping) > universe.trajectory.n_frames):
+        if (frame_mapping is not None) and (len(frame_mapping) > universe.trajectory.n_frames):
             raise ValueError("one or more mapping values are"
                              "out of range for the trajectory")
 
@@ -795,7 +795,7 @@ class MDAnalysisSession:
             if frame < 0:
                 continue
 
-            if frame_mapping:
+            if frame_mapping is not None:
                 # add the subframes to the frame mapping
                 frame_map = np.repeat(frame_mapping, subframes + 1)
                 # get the current and next frames
