@@ -5,8 +5,6 @@
         "tagline": "Molecular Import and Visualisation in Blender",
         "version": "4.2.1",
         "type": "add-on",
-        "archive_size": 856650,
-        "archive_hash": "sha256:3d2972a6f6482e3c502273434ca53eec0c5ab3dae628b55c101c95a4bc4e15b2",
         "archive_url": "https://github.com/BradyAJohnston/MolecularNodes/releases/download/v4.0.11/molecularnodes_4.0.11.zip",
         "blender_version_min": "4.2.0",
         "maintainer": "Brady Johnston",
